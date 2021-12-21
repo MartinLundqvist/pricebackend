@@ -35,7 +35,7 @@ const start = () => {
 
     const product = await fetchProduct(search);
 
-    const vendors = await fetchStores(product.link);
+    const vendors = await fetchOffers(product.link);
 
     const results: IResponse = { product, vendors };
 
@@ -86,8 +86,9 @@ const fetchProduct = async (search: string): Promise<IProductSearchResult> => {
   return results;
 };
 
-const fetchStores = async (url: string): Promise<IVendorSearchResult[]> => {
+const fetchOffers = async (url: string): Promise<IVendorSearchResult[]> => {
   const date = new Date().toLocaleString();
+  const OFFER_LIMIT = 10;
   console.log(date + ': Scraping ' + url);
   var results: IVendorSearchResult[] = [];
 
@@ -100,52 +101,54 @@ const fetchStores = async (url: string): Promise<IVendorSearchResult[]> => {
       '#product-body > div.FKse_kiJXC > div > div.vQOkVLmS99.JpHTC3gnJ6 > div.MFbHUJ3qvl > div > div > div.EUXXvl3ByR.css-19thj06 > div';
 
     $(vendorSelector).each((i, element) => {
-      const attribute = $(element).attr('aria-label');
+      if (i < OFFER_LIMIT - 1) {
+        const attribute = $(element).attr('aria-label');
 
-      var vendor = '';
-      var priceOffer = 0;
-      var productOffer = '';
+        var vendor = '';
+        var priceOffer = 0;
+        var productOffer = '';
 
-      // If this attribute exists, it is a partner company, we parse accordingly
-      if (attribute) {
-        vendor = attribute.split(',')[0];
-        productOffer = $(
-          'div.Rj1ZIdJtHj.LfnWqDQEC_.css-qt1ys4 > p',
-          element
-        ).text();
-      } else {
-        vendor = $(
-          'p.SnarOLmYcb.QTqr3FhD08.CMnSARKXkC.eSiwcTiHBc.qzyF__rcJz.css-ai0pqp',
-          element
-        ).text();
-        productOffer = $(
-          'p.SnarOLmYcb.J0LD8ZkjaI.vi8fZFqHqP.eSiwcTiHBc.RM90jzC6co.css-ai0pqp',
-          element
-        ).text();
-      }
+        // If this attribute exists, it is a partner company, we parse accordingly
+        if (attribute) {
+          vendor = attribute.split(',')[0];
+          productOffer = $(
+            'div.Rj1ZIdJtHj.LfnWqDQEC_.css-qt1ys4 > p',
+            element
+          ).text();
+        } else {
+          vendor = $(
+            'p.SnarOLmYcb.QTqr3FhD08.CMnSARKXkC.eSiwcTiHBc.qzyF__rcJz.css-ai0pqp',
+            element
+          ).text();
+          productOffer = $(
+            'p.SnarOLmYcb.J0LD8ZkjaI.vi8fZFqHqP.eSiwcTiHBc.RM90jzC6co.css-ai0pqp',
+            element
+          ).text();
+        }
 
-      // The price can always be found at the same place. We need to remove 'fr.', 'kr' and any additional empty spaces.
-      priceOffer = parseInt(
-        $('div.css-guoxna > span', element)
-          .text()
-          .replace('fr.', '')
-          .slice(0, -3)
-          .replace(' ', ''),
-        10
-      );
-
-      if (vendor !== '') {
-        console.log(
-          'At entry ' +
-            i +
-            '> ' +
-            vendor +
-            ': ' +
-            productOffer +
-            ' : ' +
-            priceOffer
+        // The price can always be found at the same place. We need to remove 'fr.', 'kr' and any additional empty spaces.
+        priceOffer = parseInt(
+          $('div.css-guoxna > span', element)
+            .text()
+            .replace('fr.', '')
+            .slice(0, -3)
+            .replace(' ', ''),
+          10
         );
-        results = [...results, { vendor, productOffer, priceOffer }];
+
+        if (vendor !== '') {
+          console.log(
+            'At entry ' +
+              i +
+              '> ' +
+              vendor +
+              ': ' +
+              productOffer +
+              ' : ' +
+              priceOffer
+          );
+          results = [...results, { vendor, productOffer, priceOffer }];
+        }
       }
     });
   } catch (err) {

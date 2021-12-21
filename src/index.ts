@@ -2,27 +2,32 @@ import axios from 'axios';
 import cheerio from 'cheerio';
 import express from 'express';
 import cors from 'cors';
+import {
+  IResponse,
+  IProductSearchResult,
+  IVendorSearchResult,
+} from 'price-scraper-common';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-interface IVendorSearchResult {
-  vendor: string;
-  product: string;
-  price: string;
-}
+// interface IVendorSearchResult {
+//   vendor: string;
+//   product: string;
+//   price: string;
+// }
 
-interface IProductSearchResult {
-  product: string;
-  link: string;
-}
+// interface IProductSearchResult {
+//   product: string;
+//   link: string;
+// }
 
-interface IResponse {
-  product: IProductSearchResult;
-  vendors: IVendorSearchResult[];
-}
+// interface IResponse {
+//   product: IProductSearchResult;
+//   vendors: IVendorSearchResult[];
+// }
 
 const start = () => {
   app.get('/find/:search', async (req, res) => {
@@ -43,11 +48,14 @@ const start = () => {
 };
 
 const fetchProduct = async (search: string): Promise<IProductSearchResult> => {
-  const date = new Date().toLocaleString();
+  var date = new Date().toLocaleString();
   console.log(date + ': Receieved searchwords ' + search);
   var results: IProductSearchResult = { product: '', link: '' };
 
   try {
+    console.log(
+      date + ': Fetching ' + `https://pricerunner.se/results?q=${search}`
+    );
     const { data } = await axios.get(
       `https://pricerunner.se/results?q=${search}`
     );
@@ -63,10 +71,13 @@ const fetchProduct = async (search: string): Promise<IProductSearchResult> => {
       .parent()
       .parent();
 
-    const results = {
+    results = {
       product: $(targetProduct).text() || 'no found',
       link: 'https://pricerunner.se' + $('a', targetLink).attr('href') || '',
     };
+
+    date = new Date().toLocaleString();
+    console.log(date + ': found ' + results.product);
   } catch (err) {
     console.log('Something went wrong while fetching product!');
     console.log(err);
@@ -92,36 +103,49 @@ const fetchStores = async (url: string): Promise<IVendorSearchResult[]> => {
       const attribute = $(element).attr('aria-label');
 
       var vendor = '';
-      var price = '';
-      var product = '';
+      var priceOffer = 0;
+      var productOffer = '';
 
       // If this attribute exists, it is a partner company, we parse accordingly
       if (attribute) {
         vendor = attribute.split(',')[0];
-        product = $('div.Rj1ZIdJtHj.LfnWqDQEC_.css-qt1ys4 > p', element).text();
+        productOffer = $(
+          'div.Rj1ZIdJtHj.LfnWqDQEC_.css-qt1ys4 > p',
+          element
+        ).text();
       } else {
         vendor = $(
           'p.SnarOLmYcb.QTqr3FhD08.CMnSARKXkC.eSiwcTiHBc.qzyF__rcJz.css-ai0pqp',
           element
         ).text();
-        product = $(
+        productOffer = $(
           'p.SnarOLmYcb.J0LD8ZkjaI.vi8fZFqHqP.eSiwcTiHBc.RM90jzC6co.css-ai0pqp',
           element
         ).text();
       }
 
       // The price can always be found at the same place. We need to remove 'fr.', 'kr' and any additional empty spaces.
-      price = $('div.css-guoxna > span', element)
-        .text()
-        .replace('fr.', '')
-        .slice(0, -3)
-        .replace(' ', '');
+      priceOffer = parseInt(
+        $('div.css-guoxna > span', element)
+          .text()
+          .replace('fr.', '')
+          .slice(0, -3)
+          .replace(' ', ''),
+        10
+      );
 
       if (vendor !== '') {
         console.log(
-          'At entry ' + i + '> ' + vendor + ': ' + product + ' : ' + price
+          'At entry ' +
+            i +
+            '> ' +
+            vendor +
+            ': ' +
+            productOffer +
+            ' : ' +
+            priceOffer
         );
-        results = [...results, { vendor, product, price }];
+        results = [...results, { vendor, productOffer, priceOffer }];
       }
     });
   } catch (err) {

@@ -7,6 +7,7 @@ import {
   IProductSearchResult,
   IVendorSearchResult,
 } from 'price-scraper-common';
+import { nanoid } from 'nanoid';
 
 const app = express();
 
@@ -107,6 +108,7 @@ const fetchOffers = async (url: string): Promise<IVendorSearchResult[]> => {
         var vendor = '';
         var priceOffer = 0;
         var productOffer = '';
+        var productOfferID = nanoid();
 
         // If this attribute exists, it is a partner company, we parse accordingly
         if (attribute) {
@@ -147,7 +149,10 @@ const fetchOffers = async (url: string): Promise<IVendorSearchResult[]> => {
               ' : ' +
               priceOffer
           );
-          results = [...results, { vendor, productOffer, priceOffer }];
+          results = [
+            ...results,
+            { vendor, productOfferID, productOffer, priceOffer },
+          ];
         }
       }
     });

@@ -8,27 +8,12 @@ import {
   IVendorSearchResult,
 } from 'price-scraper-common';
 import { nanoid } from 'nanoid';
+import { writeFile } from 'fs';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-// interface IVendorSearchResult {
-//   vendor: string;
-//   product: string;
-//   price: string;
-// }
-
-// interface IProductSearchResult {
-//   product: string;
-//   link: string;
-// }
-
-// interface IResponse {
-//   product: IProductSearchResult;
-//   vendors: IVendorSearchResult[];
-// }
 
 const start = () => {
   app.get('/find/:search', async (req, res) => {

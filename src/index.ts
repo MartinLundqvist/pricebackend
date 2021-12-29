@@ -8,11 +8,15 @@ import {
   IVendorSearchResult,
 } from 'price-scraper-common';
 import { nanoid } from 'nanoid';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
+
+const PORT = process.env.PORT || 4000;
 
 const start = () => {
   app.get('/find/:search', async (req, res) => {
@@ -27,7 +31,7 @@ const start = () => {
     res.status(200).send(JSON.stringify(results));
   });
 
-  app.listen(4000, () => {
+  app.listen(PORT, () => {
     console.log('Listening on port 4000');
   });
 };

@@ -8,7 +8,6 @@ import {
   IVendorSearchResult,
 } from 'price-scraper-common';
 import { nanoid } from 'nanoid';
-import { writeFile } from 'fs';
 
 const app = express();
 
@@ -74,7 +73,7 @@ const fetchProduct = async (search: string): Promise<IProductSearchResult> => {
 
 const fetchOffers = async (url: string): Promise<IVendorSearchResult[]> => {
   const date = new Date().toLocaleString();
-  const OFFER_LIMIT = 10;
+  const OFFER_LIMIT = 30;
   console.log(date + ': Scraping ' + url);
   var results: IVendorSearchResult[] = [];
 

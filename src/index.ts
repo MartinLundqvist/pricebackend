@@ -6,7 +6,7 @@ import {
   IResponse,
   IProductSearchResult,
   IVendorSearchResult,
-} from 'price-scraper-common';
+} from '@mlundqvi/price-scraper-common';
 import { nanoid } from 'nanoid';
 import dotenv from 'dotenv';
 
